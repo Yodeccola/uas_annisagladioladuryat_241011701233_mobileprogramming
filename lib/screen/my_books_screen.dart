@@ -20,13 +20,13 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
   TimeOfDay? _pickedTime;
 
   void _openReviewDialog() {
-    // Hanya buku yang status interaksinya ditandai 'Read' yang bisa di-review mendalam
     final availableBooks = BookState.masterBooks;
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text('Update Progres & Tulis Review', style: TextStyle(fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: SizedBox(
@@ -87,7 +87,6 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
                       maxLines: 2,
                     ),
                     const SizedBox(height: 12),
-
                     // 3. IMPLEMENTASI DATE & TIME PICKER (Sangat cocok untuk "Date Finished Reading")
                     const Text('Kapan Selesai Membaca?', style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 6),
@@ -136,7 +135,6 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
               onPressed: () {
                 if (_selectedAutocompleteBook == null) return;
                 
-                // Simpan/Update state data interaksi lokal secara dinamis
                 setState(() {
                   final bookId = _selectedAutocompleteBook!['id'];
                   BookState.userBookInteractions.removeWhere((element) => element['bookId'] == bookId);
@@ -166,7 +164,6 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Menyaring list data buku berdasarkan filter kategori rak sebelah kiri di gambar mockup
     List<Map<String, dynamic>> filteredInteractions = _selectedShelfFilter == 'All'
         ? BookState.userBookInteractions
         : BookState.userBookInteractions.where((i) => i['shelf'] == _selectedShelfFilter).toList();
@@ -206,7 +203,8 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
               ],
             ),
           ),
-          // Konten Utama: List Tabel data buku hasil saringan
+
+          // Tampilan Daftar Buku Dengan Sistem Keamanan / Anti-Crash (FIXED BAD STATE)
           Expanded(
             child: filteredInteractions.isEmpty
                 ? const Center(child: Text('Tidak ada buku di rak ini.'))
@@ -215,7 +213,17 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
                     itemCount: filteredInteractions.length,
                     itemBuilder: (context, index) {
                       final interaction = filteredInteractions[index];
-                      final book = BookState.masterBooks.firstWhere((b) => b['id'] == interaction['bookId']);
+                      
+                      // FIXED METHOD: Ditambahkan pencarian orElse mengembalikan Map kosong biar tidak melempar error Bad State
+                      final book = BookState.masterBooks.firstWhere(
+                        (b) => b['id'] == interaction['bookId'],
+                        orElse: () => {},
+                      );
+
+                      // Jika buku terhapus dari sistem, jangan render kartunya (SizedBox.shrink kosong)
+                      if (book.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
 
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 8),
