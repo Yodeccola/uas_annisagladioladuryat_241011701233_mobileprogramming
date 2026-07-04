@@ -14,7 +14,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentSubPageIndex = 0; // Indeks halaman aktif navbar atas
+  int _currentSubPageIndex = 0; // Indeks halaman aktif navbar bawah
   final List<String> _genres = ['Fiksi', 'Romansa', 'Fantasi', 'Self Dev', 'Misteri'];
 
   // Fungsi merender halaman terpilih secara dinamis (Multi-Page System)
@@ -26,12 +26,14 @@ class _HomeScreenState extends State<HomeScreen> {
         return const MyBooksScreen(); // Halaman Rak & Review Anda
       case 2:
         return const QuizScreen(); // Halaman Kuis Rekomendasi
+      case 3:
+        return const ProfileScreen(); // Halaman Profil Pengguna dimasukkan ke sistem tab mobile
       default:
         return _buildBrowsePage();
     }
   }
 
-  // Dialog Form Tambah / Edit Data (Menggunakan state global BookState)
+// Dialog Form Tambah / Edit Data (Menggunakan state global BookState)
   void _showFormDialog({
     int? id,
     String? currentJudul,
@@ -153,7 +155,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   }
                 });
-
                 Navigator.pop(context);
               },
               child: const Text('Simpan', style: TextStyle(color: Colors.white)),
@@ -294,37 +295,12 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.brown[800],
         elevation: 2,
-        title: Row(
-          children: [
-            const Text('Goodreads Personal', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            const SizedBox(width: 40),
-            
-            // TOP NAVIGATION BAR
-            TextButton(
-              onPressed: () => setState(() => _currentSubPageIndex = 0),
-              child: Text('Browse', style: TextStyle(color: Colors.white, fontWeight: _currentSubPageIndex == 0 ? FontWeight.bold : FontWeight.normal)),
-            ),
-            TextButton(
-              onPressed: () => setState(() => _currentSubPageIndex = 1),
-              child: Text('My Books', style: TextStyle(color: Colors.white, fontWeight: _currentSubPageIndex == 1 ? FontWeight.bold : FontWeight.normal)),
-            ),
-            TextButton(
-              onPressed: () => setState(() => _currentSubPageIndex = 2),
-              child: Text('Quiz Challenge 🎯', style: TextStyle(color: Colors.white, fontWeight: _currentSubPageIndex == 2 ? FontWeight.bold : FontWeight.normal)),
-            ),
-          ],
+        title: const Text(
+          'Goodreads Personal', 
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle, color: Colors.white),
-            tooltip: 'Profil Pengguna',
-            onPressed: () {
-              Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ProfileScreen()),
-              );
-            },
-          ),
+          // Hanya menyisakan tombol logout di kanan atas AppBar
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () async {
@@ -336,7 +312,42 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         ],
       ),
-      body: _buildBody(), // Menampilkan halaman dinamis
+      body: _buildBody(), // Menampilkan halaman dinamis berdasarkan pilihan tab bawah
+      
+      // IMPLEMENTASI NAVIGATION BAR (Gaya Mobile Native persis seperti image_745845.png)
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentSubPageIndex,
+        onDestinationSelected: (int index) {
+          setState(() {
+            _currentSubPageIndex = index;
+          });
+        },
+        indicatorColor: Colors.brown[100], // Highlight estetik sewarna tema cokelat
+        backgroundColor: Colors.white,
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.explore_outlined),
+            selectedIcon: Icon(Icons.explore, color: Colors.brown),
+            label: 'Browse',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.book_outlined),
+            selectedIcon: Icon(Icons.book, color: Colors.brown),
+            label: 'My Books',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.star_outline),
+            selectedIcon: Icon(Icons.star, color: Colors.brown),
+            label: 'Quiz',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outlined),
+            selectedIcon: Icon(Icons.person, color: Colors.brown),
+            label: 'Profile',
+          ),
+        ],
+      ),
+
       // FloatingActionButton hanya muncul jika kita sedang membuka tab 'Browse' (index 0)
       floatingActionButton: _currentSubPageIndex == 0
           ? FloatingActionButton(
